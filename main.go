@@ -45,14 +45,37 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			args := strings.Split(m.cmd.Value(), " ")
 			switch args[0] {
 			case "c":
-				m.msg = "not implemented yet"
-				// m.check()
+				// m.msg = "not implemented yet"
+				m.check()
 			case "o":
 				m.msg = m.tree.InOrder()
 			case "r":
-				m.msg = "not implemented yet"
+				if len(args) < 2 {
+					m.msg = "Please provide a value to rotate"
+					break
+				}
+
+				node, err := m.tree.Query(args[1])
+				if err != nil {
+					m.msg = err.Error()
+					break
+				}
+
+				m.tree.RRotate(node)
+
 			case "l":
-				m.msg = "not implemented yet"
+				if len(args) < 2 {
+					m.msg = "Please provide a value to rotate"
+					break
+				}
+
+				node, err := m.tree.Query(args[1])
+				if err != nil {
+					m.msg = err.Error()
+					break
+				}
+
+				m.tree.LRotate(node)
 			case "p":
 				if len(args) < 2 {
 					m.print("")
@@ -99,33 +122,33 @@ func (m Model) View() string {
 	)
 }
 
-// func (m *Model) check() {
-// 	queue := []*Node{m.node}
-// 	m.msg = ""
-// 	if m.node.Parent != Nil {
-// 		m.msg += "Root's parent is not nil\n"
-// 	}
-// 	for len(queue) > 0 {
-// 		curr := queue[0]
-// 		queue = queue[1:]
-//
-// 		if curr == nil || curr == Nil {
-// 			continue
-// 		}
-//
-// 		m.msg += fmt.Sprintf("Node %d: \n", curr.Value)
-//
-// 		if curr.Left != Nil && curr.Left.Parent != curr {
-// 			m.msg += fmt.Sprintf("%d's parent is not %d but %d\n", curr.Left.Value, curr.Value, curr.Left.Parent.Value)
-// 		}
-//
-// 		if curr.Right != Nil && curr.Right.Parent != curr {
-// 			m.msg += fmt.Sprintf("%d's parent is not %d but %d\n", curr.Right.Value, curr.Value, curr.Right.Parent.Value)
-// 		}
-//
-// 		queue = append(queue, curr.Left, curr.Right)
-// 	}
-// }
+func (m *Model) check() {
+	queue := []*RBNode{m.tree.Root}
+	m.msg = ""
+	if m.tree.Root.Parent != Nil {
+		m.msg += "Root's parent is not nil\n"
+	}
+	for len(queue) > 0 {
+		curr := queue[0]
+		queue = queue[1:]
+
+		if curr == nil || curr == Nil {
+			continue
+		}
+
+		m.msg += fmt.Sprintf("Node %d: \n", curr.Value)
+
+		if curr.Left != Nil && curr.Left.Parent != curr {
+			m.msg += fmt.Sprintf("%d's parent is not %d but %d\n", curr.Left.Value, curr.Value, curr.Left.Parent.Value)
+		}
+
+		if curr.Right != Nil && curr.Right.Parent != curr {
+			m.msg += fmt.Sprintf("%d's parent is not %d but %d\n", curr.Right.Value, curr.Value, curr.Right.Parent.Value)
+		}
+
+		queue = append(queue, curr.Left, curr.Right)
+	}
+}
 
 func (m *Model) print(query string) {
 	m.msg = ""
@@ -141,7 +164,7 @@ func (m *Model) print(query string) {
 				continue
 			}
 
-			m.msg += curr.String()
+			m.msg += curr.String() + "\n"
 
 			queue = append(queue, curr.Left, curr.Right)
 		}
@@ -194,9 +217,9 @@ func main() {
 	tea.LogToFile("log.txt", "log")
 	model := initModel()
 
-	// for _, v := range []int{5, 20, 4} {
-	// 	model.tree.Insert(v)
-	// }
+	for _, v := range []int{10, 5, 20, 4, 3} {
+		model.tree.Insert(v)
+	}
 
 	p := tea.NewProgram(model)
 	if _, err := p.Run(); err != nil {

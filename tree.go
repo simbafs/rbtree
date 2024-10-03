@@ -1,13 +1,16 @@
 package main
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
+)
 
 func (t RBTree) View() string {
-	return t.Root.View(t.Nil)
+	return t.Root.View()
 }
 
-func (node *RBNode) View(Nil *RBNode) string {
+func (node *RBNode) View() string {
 	style := lipgloss.NewStyle().Border(lipgloss.RoundedBorder())
+
 	if node == nil {
 		return ""
 	}
@@ -22,8 +25,8 @@ func (node *RBNode) View(Nil *RBNode) string {
 		return style.Render(node.Str())
 	}
 
-	l := node.Left.View(Nil)
-	r := node.Right.View(Nil)
+	l := node.Left.View()
+	r := node.Right.View()
 	self := style.Width(lipgloss.Width(l) + lipgloss.Width(r) - 2). // -2 for the border
 									Render(node.Str())
 

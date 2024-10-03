@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 )
 
 type Color int
@@ -25,7 +27,6 @@ func (c Color) String() string {
 
 type RBTree struct {
 	Root *RBNode
-	Nil  *RBNode
 }
 
 type RBNode struct {
@@ -34,6 +35,11 @@ type RBNode struct {
 	Right  *RBNode
 	Parent *RBNode
 	Color  Color
+}
+
+var Nil = &RBNode{
+	Value: -1,
+	Color: Black,
 }
 
 func (node *RBNode) SetLeft(left *RBNode) {
@@ -57,7 +63,7 @@ func (node *RBNode) SetRight(right *RBNode) {
 }
 
 func (node *RBNode) InOrder() string {
-	if node == nil {
+	if node == nil || node == Nil {
 		return ""
 	}
 	return fmt.Sprintf("%s %d %s", node.Left.InOrder(), node.Value, node.Right.InOrder())
@@ -74,41 +80,39 @@ func (node *RBNode) String() string {
 	if node == nil {
 		return "<nil>"
 	}
+	if node == Nil {
+		return "<Nil>"
+	}
 	return fmt.Sprintf("Node %d, left: %d, right: %d, parent: %d, color: %s", node.Value, node.Left.Value, node.Right.Value, node.Parent.Value, node.Color)
 }
 
 func NewRBTree() *RBTree {
-	Nil := &RBNode{
-		Value: -1,
-		Color: Black,
-	}
 	return &RBTree{
-		Nil:  Nil,
 		Root: Nil,
 	}
 }
 
 func (t *RBTree) Insert(val int) {
-	if t.Root == t.Nil {
+	if t.Root == Nil {
 		t.Root = &RBNode{
 			Value:  val,
 			Color:  Black,
-			Left:   t.Nil,
-			Right:  t.Nil,
-			Parent: t.Nil,
+			Left:   Nil,
+			Right:  Nil,
+			Parent: Nil,
 		}
 		return
 	}
 
 	curr := t.Root
-	for curr != t.Nil {
+	for curr != Nil {
 		if val > curr.Value {
-			if curr.Right == t.Nil {
+			if curr.Right == Nil {
 				curr.Right = &RBNode{
 					Value:  val,
 					Color:  Red,
-					Left:   t.Nil,
-					Right:  t.Nil,
+					Left:   Nil,
+					Right:  Nil,
 					Parent: curr,
 				}
 				t.Fix(curr.Right)
@@ -116,12 +120,12 @@ func (t *RBTree) Insert(val int) {
 			}
 			curr = curr.Right
 		} else {
-			if curr.Left == t.Nil {
+			if curr.Left == Nil {
 				curr.Left = &RBNode{
 					Value:  val,
 					Color:  Red,
-					Left:   t.Nil,
-					Right:  t.Nil,
+					Left:   Nil,
+					Right:  Nil,
 					Parent: curr,
 				}
 				t.Fix(curr.Left)
@@ -133,15 +137,15 @@ func (t *RBTree) Insert(val int) {
 }
 
 func (t *RBTree) Fix(node *RBNode) {
-	for node != t.Nil {
+	for node != Nil {
 		// node is root
-		if node.Parent == t.Nil {
+		if node.Parent == Nil {
 			node.Color = Black
 			return
 		}
 
 		// parent is root
-		if node.Parent.Parent == t.Nil {
+		if node.Parent.Parent == Nil {
 			return
 		}
 
@@ -196,8 +200,33 @@ func (t *RBTree) Fix(node *RBNode) {
 	}
 }
 
+// func (t *RBTree) RRotate(node **RBNode) {
+// 	if *node == Nil || (*node).Left == Nil {
+// 		return
+// 	}
+//
+// 	left := (*node).Left
+// 	// p := (*node).Parent
+//
+// 	(*node).SetLeft(left.Right)
+// 	left.SetRight(*node)
+//
+// 	*node = left
+//
+// 	// if p == Nil {
+// 	// 	// node is root
+// 	// 	t.Root = left
+// 	// } else if p.Left == node {
+// 	// 	// node is the left child of its parent
+// 	// 	p.SetLeft(left)
+// 	// } else {
+// 	// 	// node is the right child of its parent
+// 	// 	p.SetRight(left)
+// 	// }
+// }
+
 func (t *RBTree) RRotate(node *RBNode) {
-	if node == t.Nil || node.Left == t.Nil {
+	if node == Nil || node.Left == Nil {
 		return
 	}
 
@@ -207,7 +236,9 @@ func (t *RBTree) RRotate(node *RBNode) {
 	node.SetLeft(left.Right)
 	left.SetRight(node)
 
-	if p == t.Nil {
+	left.Parent = p
+
+	if p == Nil {
 		// node is root
 		t.Root = left
 	} else if p.Left == node {
@@ -220,7 +251,7 @@ func (t *RBTree) RRotate(node *RBNode) {
 }
 
 func (t *RBTree) LRotate(node *RBNode) {
-	if node == t.Nil || node.Right == t.Nil {
+	if node == Nil || node.Right == Nil {
 		return
 	}
 
@@ -230,7 +261,9 @@ func (t *RBTree) LRotate(node *RBNode) {
 	node.SetRight(right.Left)
 	right.SetLeft(node)
 
-	if p == t.Nil {
+	right.Parent = p
+
+	if p == Nil {
 		// node is root
 		t.Root = right
 	} else if p.Left == node {
@@ -248,7 +281,7 @@ func (t *RBTree) InOrder() string {
 
 func (t *RBTree) Find(val int) *RBNode {
 	curr := t.Root
-	for curr != t.Nil && curr.Value != val {
+	for curr != Nil && curr.Value != val {
 		if val < curr.Value {
 			curr = curr.Left
 		} else {
@@ -256,4 +289,35 @@ func (t *RBTree) Find(val int) *RBNode {
 		}
 	}
 	return curr
+}
+
+func (t *RBTree) Query(query string) (*RBNode, error) {
+	parts := strings.Split(query, ".")
+
+	curr := t.Root
+
+	for _, part := range parts {
+		if curr == nil {
+			return nil, fmt.Errorf("Node is nil at path: %s", strings.Join(parts, "."))
+		}
+		switch part {
+		case "left":
+			curr = curr.Left
+		case "right":
+			curr = curr.Right
+		case "parent":
+			curr = curr.Parent
+		case "root", "":
+			curr = t.Root
+		default:
+			if val, err := strconv.Atoi(part); err == nil {
+				curr = t.Find(val)
+			} else {
+				return nil, fmt.Errorf("Unknown path: %s", part)
+			}
+		}
+
+	}
+
+	return curr, nil
 }
