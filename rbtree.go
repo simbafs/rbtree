@@ -69,6 +69,26 @@ func (node *RBNode) InOrder() string {
 	return fmt.Sprintf("%s %d %s", node.Left.InOrder(), node.Value, node.Right.InOrder())
 }
 
+func (node *RBNode) Predecessor() *RBNode {
+	curr := node.Left
+
+	for curr.Right != Nil {
+		curr = curr.Right
+	}
+
+	return curr
+}
+
+func (node *RBNode) Successor() *RBNode {
+	curr := node.Right
+
+	for curr.Left != Nil {
+		curr = curr.Left
+	}
+
+	return curr
+}
+
 func (node *RBNode) Str() string {
 	if node == nil {
 		return "<nil>"
@@ -136,6 +156,79 @@ func (t *RBTree) Insert(val int) {
 	}
 }
 
+func (t *RBTree) Delete(node *RBNode) {
+	if node == nil || node == Nil {
+		return
+	}
+
+	log.Printf("delete(%d)", node.Value)
+
+	// get child
+	child := node.Left
+	if child == Nil {
+		child = node.Right
+	}
+
+	oneChild := node.Left == Nil || node.Right == Nil
+
+	if node.Parent == Nil {
+		// node is root
+		if oneChild {
+			log.Printf("node is root, it has at most one child")
+			child.Parent = Nil
+			t.Root = child
+		} else {
+			log.Printf("node is root, it has two children")
+			suc := node.Successor()
+
+			suc.SetLeft(node.Left)
+
+			suc.Parent = Nil
+			t.Root = suc
+		}
+	} else {
+		if oneChild {
+			log.Printf("node is not root, it has at most one child")
+			if node.Parent.Left == node {
+				log.Printf("node is its parent's left child")
+
+				node.Parent.SetLeft(child)
+			} else {
+				log.Printf("node is its parent's right child")
+
+				node.Parent.SetRight(child)
+			}
+		} else {
+			log.Printf("node is not root, it has two children")
+			suc := node.Successor()
+			log.Println("suc", suc)
+
+			// TODO: Delete node by moving not replacing
+			node.Value = suc.Value
+			node.Color = suc.Color
+
+			t.Delete(suc)
+
+			// log.Println(1)
+			// suc.SetRight(node.Right)
+			// log.Println(2)
+			// suc.SetLeft(node.Left)
+			// log.Println(3)
+			//
+			// if node.Parent.Left == node {
+			// 	log.Println(4)
+			// 	node.Parent.SetLeft(suc)
+			// 	log.Println(5)
+			// } else {
+			// 	log.Println(6)
+			// 	node.Parent.SetRight(suc)
+			// 	log.Println(7)
+			// }
+			// log.Println(8)
+		}
+	}
+}
+
 func (t *RBTree) Fix(node *RBNode) {
 	for node != Nil {
 		// node is root
@@ -172,12 +265,12 @@ func (t *RBTree) Fix(node *RBNode) {
 			if node.Parent == node.Parent.Parent.Left && node == node.Parent.Right {
 				// case 2: node is LR
 				log.Printf("node %d is case 2", node.Value)
-				t.RRotate(node.Parent)
+				t.LRotate(node.Parent)
 				node = node.Left
 			} else if node.Parent == node.Parent.Parent.Right && node == node.Parent.Left {
 				// case 2 mirror: node is RL
 				log.Printf("node %d is case 2 mirror", node.Value)
-				t.LRotate(node.Parent)
+				t.RRotate(node.Parent)
 				node = node.Right
 			}
 
@@ -206,23 +299,14 @@ func (t *RBTree) Fix(node *RBNode) {
 // 	}
 //
 // 	left := (*node).Left
-// 	// p := (*node).Parent
+// 	p := (*node).Parent
 //
 // 	(*node).SetLeft(left.Right)
 // 	left.SetRight(*node)
 //
-// 	*node = left
+// 	left.Parent = p
 //
-// 	// if p == Nil {
-// 	// 	// node is root
-// 	// 	t.Root = left
-// 	// } else if p.Left == node {
-// 	// 	// node is the left child of its parent
-// 	// 	p.SetLeft(left)
-// 	// } else {
-// 	// 	// node is the right child of its parent
-// 	// 	p.SetRight(left)
-// 	// }
+// 	*node = left
 // }
 
 func (t *RBTree) RRotate(node *RBNode) {

@@ -9,7 +9,7 @@ func (t RBTree) View() string {
 }
 
 func (node *RBNode) View() string {
-	style := lipgloss.NewStyle().Border(lipgloss.RoundedBorder())
+	style := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Align(lipgloss.Center)
 
 	if node == nil {
 		return ""

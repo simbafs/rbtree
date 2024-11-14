@@ -94,6 +94,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				m.tree.Insert(val)
+			case "d":
+				if len(args) < 2 {
+					m.msg = "Please provide a value to delete"
+					break
+				}
+				val, err := strconv.Atoi(args[1])
+				if err != nil {
+					m.msg = "Invalid value " + args[1]
+					break
+				}
+
+				m.tree.Delete(m.tree.Find(val))
 			case "q":
 				return m, tea.Quit
 			default:
@@ -187,6 +199,10 @@ func (m *Model) print(query string) {
 			curr = curr.Right
 		case "parent":
 			curr = curr.Parent
+		case "pre":
+			curr = curr.Predecessor()
+		case "suc":
+			curr = curr.Successor()
 		case "root", "":
 			curr = m.tree.Root
 		default:
@@ -217,7 +233,7 @@ func main() {
 	tea.LogToFile("log.txt", "log")
 	model := initModel()
 
-	for _, v := range []int{10, 5, 20, 4, 3} {
+	for _, v := range []int{50, 10, 80, 65, 90, 60, 70}{
 		model.tree.Insert(v)
 	}
 
